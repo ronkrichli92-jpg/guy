@@ -330,87 +330,45 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ============================================
-    // HERO VIDEO - Load immediately
+    // ALL VIDEOS - Load and Play Immediately
     // ============================================
-    console.log('📹 Loading hero video...');
+    console.log('📹 Loading all videos immediately...');
     
-    const heroVideo = document.querySelector('.hero-video');
+    const allVideos = document.querySelectorAll('.hero-video, .casino-video, .card-video');
     
-    if (heroVideo) {
-        heroVideo.addEventListener('loadeddata', () => {
-            console.log('✅ Hero video loaded!');
-            heroVideo.classList.add('loaded');
+    allVideos.forEach((video, index) => {
+        // Mark as loaded immediately for styling
+        video.classList.add('loaded');
+        
+        // Try to play
+        video.play().catch(err => {
+            console.log(`🔇 Video ${index + 1} autoplay blocked, will play on interaction`);
         });
         
-        // Play hero video immediately
-        heroVideo.play().catch(err => {
-            console.log('🔇 Hero autoplay blocked, that\'s okay');
+        video.addEventListener('loadeddata', () => {
+            console.log(`✅ Video ${index + 1} loaded!`);
+            video.play().catch(err => console.log('Play prevented'));
         });
-    }
+    });
+    
+    console.log(`✅ ${allVideos.length} videos loading...`);
+    
+    // Lazy Loading removed - all videos load immediately for instant display
     
     // ============================================
-    // VIDEO LAZY LOADING - Smart Loading for ALL Videos
+    // VIDEO AUTO-PLAY - Ensure continuous playback
     // ============================================
-    console.log('📹 Setting up smart lazy loading for all videos...');
+    console.log('🔄 Ensuring video autoplay...');
     
-    const lazyVideos = document.querySelectorAll('.lazy-video');
-    
-    if (lazyVideos.length > 0) {
-        const videoObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const video = entry.target;
-                    const videoSrc = video.getAttribute('data-src');
-                    
-                    if (videoSrc && !video.src) {
-                        console.log(`📹 Loading video: ${videoSrc}`);
-                        
-                        // Create source element
-                        const source = document.createElement('source');
-                        source.src = videoSrc;
-                        source.type = 'video/mp4';
-                        video.appendChild(source);
-                        
-                        video.load();
-                        
-                        video.addEventListener('loadeddata', () => {
-                            console.log(`✅ Video loaded: ${videoSrc}`);
-                            video.play().catch(err => {
-                                console.log('🔇 Autoplay blocked, that\'s okay');
-                            });
-                            video.classList.add('loaded');
-                        });
-                        
-                        video.addEventListener('error', () => {
-                            console.error(`❌ Error loading: ${videoSrc}`);
-                        });
-                        
-                        // Stop observing after loading
-                        videoObserver.unobserve(video);
-                    }
-                }
-            });
-        }, {
-            rootMargin: '300px' // Start loading 300px before visible
+    // Retry autoplay on user interaction
+    document.addEventListener('click', function() {
+        allVideos.forEach(video => {
+            if (video.paused) {
+                video.play().catch(() => {});
+            }
         });
-        
-        // Observe all lazy videos
-        lazyVideos.forEach(video => videoObserver.observe(video));
-        console.log(`✅ Observing ${lazyVideos.length} lazy videos`);
-    }
+    }, { once: true });
     
-    // ============================================
-    // VIDEO AUTO-LOOP - Smart looping
-    // ============================================
-    console.log('🔄 Setting up smart video looping...');
-    
-    // Only handle videos that are actually loaded
-    document.addEventListener('play', function(e) {
-        if (e.target.tagName === 'VIDEO') {
-            console.log('▶️ Video playing');
-        }
-    }, true);
-    
-    console.log('✅ Smart video handling enabled! 🚀');
+    console.log('✅ Video autoplay enabled! 🚀');
     console.log('✅ Agent Guy - Dark Minimal Design Loaded! 🚀');
 });
