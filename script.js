@@ -109,17 +109,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function initAllEffects() {
         console.log('🚀 Initializing Agent Guy effects...');
         
-        // 1. PARTICLES.JS - Red particles background
+        // 1. PARTICLES.JS - Red particles background (Optimized for mobile)
         console.log('1️⃣ Initializing Particles.js...');
         const isMobile = window.innerWidth <= 768;
         
         particlesJS('particles-js', {
             particles: {
                 number: {
-                    value: isMobile ? 30 : 60,
+                    value: isMobile ? 15 : 50,  // Reduced for better performance
                     density: {
                         enable: true,
-                        value_area: 800
+                        value_area: 1000
                     }
                 },
                 color: {
@@ -207,25 +207,34 @@ document.addEventListener('DOMContentLoaded', function() {
             shuffle: false
         });
 
-        // 3. AOS - Scroll Animations
+        // 3. AOS - Scroll Animations (Optimized for mobile)
         console.log('3️⃣ Initializing AOS...');
         AOS.init({
-            duration: 800,
+            duration: isMobile ? 600 : 800,  // Faster on mobile
             easing: 'ease-out',
-            once: false,
-            mirror: true,
-            offset: 100
+            once: true,  // Animation happens once (better performance)
+            mirror: false,  // Don't animate on scroll up (better performance)
+            offset: isMobile ? 50 : 100,
+            disable: function() {
+                // Disable on very small screens or slow devices
+                return window.innerWidth < 480;
+            }
         });
 
-        // 4. VANILLA TILT - 3D Cards (if elements exist)
+        // 4. VANILLA TILT - 3D Cards (Disabled on mobile for performance)
         console.log('4️⃣ Checking for tilt elements...');
-        const tiltElements = document.querySelectorAll('.casino-card-big, .bonus-compact-card, .trust-icon-box');
-        if (tiltElements.length > 0) {
-            VanillaTilt.init(tiltElements, {
-                max: 10,
-                speed: 400,
-                scale: 1.02
-            });
+        if (!isMobile) {  // Only on desktop
+            const tiltElements = document.querySelectorAll('.casino-card-big, .bonus-compact-card, .trust-icon-box');
+            if (tiltElements.length > 0) {
+                VanillaTilt.init(tiltElements, {
+                    max: 8,
+                    speed: 400,
+                    scale: 1.01
+                });
+                console.log('✅ Tilt enabled (desktop only)');
+            }
+        } else {
+            console.log('📱 Tilt disabled for mobile performance');
         }
 
         // 5. GSAP - Advanced Animations
@@ -321,121 +330,87 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ============================================
-    // INSTANT VIDEO LOADING - Hero & Casino
+    // HERO VIDEO - Load immediately
     // ============================================
-    console.log('📹 Loading hero and casino videos...');
+    console.log('📹 Loading hero video...');
     
     const heroVideo = document.querySelector('.hero-video');
-    const casinoVideo = document.querySelector('.casino-video');
     
     if (heroVideo) {
         heroVideo.addEventListener('loadeddata', () => {
             console.log('✅ Hero video loaded!');
             heroVideo.classList.add('loaded');
         });
-    }
-    
-    if (casinoVideo) {
-        casinoVideo.addEventListener('loadeddata', () => {
-            console.log('✅ Casino video loaded!');
-            casinoVideo.classList.add('loaded');
-        });
-    }
-    
-    // ============================================
-    // CARD VIDEOS LOADING - Slots, Live Casino, Table Games
-    // ============================================
-    console.log('🎰 Loading casino card videos...');
-    
-    const cardVideos = document.querySelectorAll('.card-video');
-    
-    cardVideos.forEach((video, index) => {
-        video.addEventListener('loadeddata', () => {
-            console.log(`✅ Card video ${index + 1} loaded!`);
-            video.classList.add('loaded');
-        });
         
-        // Ensure video plays
-        video.play().catch(err => {
-            console.log(`🔇 Card video ${index + 1} autoplay blocked, that's okay`);
+        // Play hero video immediately
+        heroVideo.play().catch(err => {
+            console.log('🔇 Hero autoplay blocked, that\'s okay');
         });
-    });
+    }
     
     // ============================================
-    // VIDEO LAZY LOADING - Smart Loading for Sports Video
+    // VIDEO LAZY LOADING - Smart Loading for ALL Videos
     // ============================================
-    console.log('📹 Setting up video lazy loading for sports...');
+    console.log('📹 Setting up smart lazy loading for all videos...');
     
-    const sportsVideo = document.querySelector('.sports-video');
+    const lazyVideos = document.querySelectorAll('.lazy-video');
     
-    if (sportsVideo) {
+    if (lazyVideos.length > 0) {
         const videoObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    console.log('⚽ Sports section visible - Loading video...');
+                    const video = entry.target;
+                    const videoSrc = video.getAttribute('data-src');
                     
-                    // Load the video
-                    const videoSrc = sportsVideo.getAttribute('data-src');
-                    if (videoSrc) {
-                        sportsVideo.src = videoSrc;
-                        sportsVideo.load();
+                    if (videoSrc && !video.src) {
+                        console.log(`📹 Loading video: ${videoSrc}`);
                         
-                        sportsVideo.addEventListener('loadeddata', () => {
-                            console.log('✅ Sports video loaded!');
-                            sportsVideo.play();
-                            sportsVideo.classList.add('loaded');
+                        // Create source element
+                        const source = document.createElement('source');
+                        source.src = videoSrc;
+                        source.type = 'video/mp4';
+                        video.appendChild(source);
+                        
+                        video.load();
+                        
+                        video.addEventListener('loadeddata', () => {
+                            console.log(`✅ Video loaded: ${videoSrc}`);
+                            video.play().catch(err => {
+                                console.log('🔇 Autoplay blocked, that\'s okay');
+                            });
+                            video.classList.add('loaded');
                         });
                         
-                        sportsVideo.addEventListener('error', () => {
-                            console.error('❌ Error loading sports video');
+                        video.addEventListener('error', () => {
+                            console.error(`❌ Error loading: ${videoSrc}`);
                         });
                         
                         // Stop observing after loading
-                        videoObserver.unobserve(sportsVideo);
+                        videoObserver.unobserve(video);
                     }
                 }
             });
         }, {
-            rootMargin: '200px' // Start loading 200px before section is visible
+            rootMargin: '300px' // Start loading 300px before visible
         });
         
-        videoObserver.observe(sportsVideo);
+        // Observe all lazy videos
+        lazyVideos.forEach(video => videoObserver.observe(video));
+        console.log(`✅ Observing ${lazyVideos.length} lazy videos`);
     }
     
     // ============================================
-    // VIDEO CONTINUOUS PLAY - NONSTOP! 🔥
+    // VIDEO AUTO-LOOP - Smart looping
     // ============================================
-    console.log('🎬 Ensuring all videos play NONSTOP...');
+    console.log('🔄 Setting up smart video looping...');
     
-    // Keep ALL videos playing continuously - NO PAUSING!
-    const allVideos = document.querySelectorAll('.hero-video, .casino-video, .sports-video, .card-video');
+    // Only handle videos that are actually loaded
+    document.addEventListener('play', function(e) {
+        if (e.target.tagName === 'VIDEO') {
+            console.log('▶️ Video playing');
+        }
+    }, true);
     
-    allVideos.forEach((video, index) => {
-        // Force play
-        video.play().catch(err => {
-            console.log(`🔇 Video ${index + 1} autoplay blocked initially, will retry`);
-        });
-        
-        // If video pauses for any reason, restart it immediately
-        video.addEventListener('pause', () => {
-            console.log(`🔄 Video ${index + 1} paused, restarting...`);
-            video.play().catch(err => console.log('Restart prevented:', err));
-        });
-        
-        // When video ends, replay immediately (backup for loop attribute)
-        video.addEventListener('ended', () => {
-            console.log(`🔄 Video ${index + 1} ended, replaying...`);
-            video.currentTime = 0;
-            video.play().catch(err => console.log('Replay prevented:', err));
-        });
-        
-        // Ensure video is always ready to play
-        video.addEventListener('loadeddata', () => {
-            console.log(`✅ Video ${index + 1} loaded and ready!`);
-            video.play().catch(err => console.log('Play prevented:', err));
-        });
-    });
-    
-    console.log('✅ All videos set to NONSTOP mode! 🚀');
+    console.log('✅ Smart video handling enabled! 🚀');
     console.log('✅ Agent Guy - Dark Minimal Design Loaded! 🚀');
 });
