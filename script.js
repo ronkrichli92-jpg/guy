@@ -224,13 +224,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // 4. VANILLA TILT - 3D Cards (Disabled on mobile for performance)
         console.log('4️⃣ Checking for tilt elements...');
         if (!isMobile) {  // Only on desktop
-            const tiltElements = document.querySelectorAll('.casino-card-big, .bonus-compact-card, .trust-icon-box');
-            if (tiltElements.length > 0) {
-                VanillaTilt.init(tiltElements, {
+        const tiltElements = document.querySelectorAll('.casino-card-big, .bonus-compact-card, .trust-icon-box');
+        if (tiltElements.length > 0) {
+            VanillaTilt.init(tiltElements, {
                     max: 8,
-                    speed: 400,
+                speed: 400,
                     scale: 1.01
-                });
+            });
                 console.log('✅ Tilt enabled (desktop only)');
             }
         } else {
@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     console.log(`✅ ${allVideos.length} videos loading...`);
-    
+                    
     // Lazy Loading removed - all videos load immediately for instant display
     
     // ============================================
